@@ -1,0 +1,24 @@
+HOSTS:
+  puppet:
+    roles:
+      - master
+      - default
+    platform: ubuntu-1404-x86_64
+    box: puppetlabs/ubuntu-14.04-64-nocm
+    hypervisor: vagrant_workstation
+    ip: 10.11.0.10
+    vagrant_memsize: 2048
+  bigip:
+    roles:
+      - f5
+    platform: el-6-x86_64
+    box: BIGIP-13.1.0.1-0.0.8-vmware
+    hypervisor: vagrant_workstation
+    user: vagrant
+    ip: 10.11.0.11
+    synced_folder: disabled
+    vagrant_memsize: 2048
+CONFIG:
+  type: foss
+  log_level: debug
+
