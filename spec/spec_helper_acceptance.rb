@@ -60,7 +60,7 @@ end
 def run_resource(resource_type, resource_title=nil)
   f5_host = hosts_as('f5').first
   options = {:ENV => {
-    'FACTER_url' => "https://admin:#{f5_host[:ssh][:password]}@#{f5_host["ip"]}"
+    'FACTER_url' => "https://vagrant:vagrant@#{f5_host["ip"]}"
   } }
   if resource_title
     on(master, puppet('resource', resource_type, resource_title, '--trace', options), { :acceptable_exit_codes => 0 }).stdout
@@ -71,7 +71,7 @@ end
 
 def wait_for_api(max_retries)
   1.upto(max_retries) do |retries|
-    on(default, "curl -skIL https://admin:#{hosts_as('f5').first[:ssh][:password]}@#{hosts_as('f5').first["ip"]}/mgmt/tm/cm/device", { :acceptable_exit_codes => [0,1] }) do |result|
+    on(default, "curl -skIL https://vagrant:vagrant@#{hosts_as('f5').first["ip"]}/mgmt/tm/cm/device", { :acceptable_exit_codes => [0,1] }) do |result|
       return if result.stdout =~ /502 Bad Gateway/
 
       counter = 10 * retries
@@ -85,14 +85,14 @@ end
 unless ENV['RS_PROVISION'] == 'no' or ENV['BEAKER_provision'] == 'no'
   run_puppet_install_helper_on([master, default])
 
-  on(master, "setenforce 0", { :acceptable_exit_codes => [0,1] })
+  #on(master, "setenforce 0", { :acceptable_exit_codes => [0,1] })
   if ENV['PUPPET_INSTALL_TYPE'] == 'agent'
     pp=<<-EOS
     package { 'puppetserver': ensure => present, }
     -> service { 'puppetserver': ensure => running, }
     EOS
 
-    apply_manifest_on(master, pp)
+    apply_manifest_on(master, pp, :debug => true)
   end
 end
 
@@ -119,7 +119,7 @@ RSpec.configure do |c|
     device_conf=<<-EOS
 [f5-dut]
 type f5
-url https://admin:#{hosts_as('f5').first[:ssh][:password]}@#{hosts_as("f5").first["ip"]}/
+url https://vagrant:vagrant@#{hosts_as("f5").first["ip"]}/
 EOS
     create_remote_file(default, "/etc/puppetlabs/puppet/device.conf", device_conf)
     make_site_pp("include f5")
